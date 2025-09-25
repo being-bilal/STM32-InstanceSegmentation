@@ -237,6 +237,7 @@ def _programm_dev_board(config, series:str="", serial_number=None):
     if (STM32Tools().CUBE_PROGRAMMER in str_args) or config.use_cube_prog:
         # check if valid board is connected (ST-Link SWD mode)
         parser = ParserErrorCube()
+        res_code = False
         if serial_number:
             logger.info(f'using the supplied stlink_serial_number: {serial_number}')
             st_links = [{'sn': serial_number, 'board': config.board[0]}]
@@ -253,7 +254,7 @@ def _programm_dev_board(config, series:str="", serial_number=None):
             logger.warning(warning_msg)
             msg_ = ' -> No valid STM32 development board is connected (ST-LINK/swd port)..'
             logger.warning(msg_)
-            return
+            return 1
         # if sn is not defined, find the first sn associated to the board name if available
         found = None
         if isinstance(config.board, list):
@@ -282,7 +283,7 @@ def _programm_dev_board(config, series:str="", serial_number=None):
                     logger.warning("You can add your board in the section board in the stmaic_*.conf you're deploying to skip prompt")
                 else:
                     found = None
-                    return
+                    return 1
             # """ Choose one of the connected board"""
             else:
                 if sys.stdin.isatty():
@@ -295,7 +296,7 @@ def _programm_dev_board(config, series:str="", serial_number=None):
                     logger.warning("You can add your board in the section board in the stmaic_*.conf you're deploying to skip prompt")
                 else:
                     found = None
-                    return
+                    return 1
 
         serial_number = found if not serial_number else serial_number
         if len(st_links) > 1 and not serial_number:
@@ -304,7 +305,7 @@ def _programm_dev_board(config, series:str="", serial_number=None):
             msg_ += 'Please, set the serial number ("serial_number" argument)'
             logger.warning(msg_)
             _connected_boards(st_links)
-            return
+            return 1
         if serial_number:
             found = False
             for st_link in st_links:
@@ -316,7 +317,7 @@ def _programm_dev_board(config, series:str="", serial_number=None):
                 msg_ = f' -> provided serial number "{serial_number}" is invalid'
                 logger.warning(msg_)
                 _connected_boards(st_links)
-                return
+                return 1
 
         if series == "stm32n6" and serial_number:
             cmd_line_sign = config.sign_cmd
@@ -326,14 +327,14 @@ def _programm_dev_board(config, series:str="", serial_number=None):
             else:
                 str_args_sign = config.sign_cmd
 
-            run_shell_cmd(str_args_sign,
+            res_code, _ =run_shell_cmd(str_args_sign,
                         cwd=config.cwd,
                         logger=logger,
                         parser=parser)
 
-        if parser and parser.error:
+        if res_code or (parser and parser.error):
             logger.error(f'Board programming failed: "{parser.error}"')
-
+            raise STMAICToolsError('Board programming failed!')
         port = re.search('port=swd', str_args, re.IGNORECASE)
         if port and serial_number:
             if hasattr(config, 'external_loader'):
@@ -348,12 +349,13 @@ def _programm_dev_board(config, series:str="", serial_number=None):
                     str_args = str_args[:port.start()] + f'port=swd sn={str(serial_number)} ' + str_args[port.end() + 1:]
 
     # logger.debug(' {}'.format(str_args))
-    run_shell_cmd(str_args,
+    res_code, _ = run_shell_cmd(str_args,
                   cwd=config.cwd,
                   logger=logger,
                   parser=parser)
-    if parser and parser.error:
+    if res_code or (parser and parser.error):
         logger.error(f'Board programming failed: "{parser.error}"')
+        raise STMAICToolsError('Board programming failed!')
 
     if series == "stm32n6" and serial_number:
         cmd_line_network_data = config.flash_network_data_cmd
@@ -367,13 +369,14 @@ def _programm_dev_board(config, series:str="", serial_number=None):
 
         str_args_network_data = str_args_network_data[:mode.start()+12] + f' sn={str(serial_number)}' + " --extload " + path_external_loader + str_args_network_data[hardRst.end():]
 
-        run_shell_cmd(str_args_network_data,
+        res_code, _ = run_shell_cmd(str_args_network_data,
                     cwd=config.cwd,
                     logger=logger,
                     parser=parser)
-    if parser and parser.error:
+    if res_code or (parser and parser.error):
         logger.error(f'Board programming failed: "{parser.error}"')
-
+        raise STMAICToolsError('Board programming failed!')
+    
     if series == "stm32n6" and serial_number:
         cmd_line_fsbl = config.flash_fsbl_cmd
         if isinstance(cmd_line_fsbl, list):
@@ -385,13 +388,14 @@ def _programm_dev_board(config, series:str="", serial_number=None):
 
         str_args_fsbl = str_args_fsbl[:mode.start()+12] + f' sn={str(serial_number)}' + " mode=HOTPLUG" + " --extload " + path_external_loader + str_args_fsbl[hardRst.end():]
 
-        run_shell_cmd(str_args_fsbl,
+        res_code, _ = run_shell_cmd(str_args_fsbl,
                     cwd=config.cwd,
                     logger=logger,
                     parser=parser)
 
     if parser and parser.error:
         logger.error(f'Board programming failed: "{parser.error}"')
+        raise STMAICToolsError('Board programming failed!')
 
 def _makefile_builder(session: STMAiSession, conf: Any,
                       user_files: Union[str, List[str], Path, List[Path]],
@@ -465,15 +469,18 @@ def _cube_ide_builder(cube_ide_exe: str, session: STMAiSession, conf: Any,
         cmd.extend(['-application org.eclipse.cdt.managedbuilder.core.headlessbuild'])
         cmd.extend(['-import', f'{prj_dir}'])
         cmd.extend(['-data', f'{ws_dir}', '-cleanBuild', f'"{conf.cproject_name}/{conf.cproject_config}"'])
-        run_shell_cmd(cmd,
+        res_code, _ = run_shell_cmd(cmd,
                       cwd=conf.cwd,
                       logger=logger,
                       parser=parser)
-        if parser and parser.error:
+        if res_code or (parser and parser.error):
             logger.error(f'STM32CubeIDE build failed: "{parser.error}"')
+            raise STMAICToolsError('STM32CubeIDE build failed!')
 
         if hasattr(conf, 'flash_cmd') and not no_flash:
-            _programm_dev_board(conf, session.series, serial_number=serial_number)
+            res_code = _programm_dev_board(conf, session.series, serial_number=serial_number)
+            if res_code:
+                raise STMAICToolsError('Board programming failed!')
 
 
 def cmd_build(

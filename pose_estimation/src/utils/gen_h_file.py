@@ -129,12 +129,15 @@ def gen_h_user_file_n6(config: DictConfig = None, quantized_model_path: str = No
             skeleton_connections = None
 
         if skeleton_connections:
-            f.write("static const int bindings[][3] = {\n")
+            f.write("#define USE_BINDINGS\n")
+            f.write("#define BINDINGS_NB ({})\n".format(len(skeleton_connections)))
+            f.write("#define BINDINGS const int bindings[BINDINGS_NB][3] = {\\\n")
             for i in range(len(skeleton_connections)):
-                f.write("    {{ {}, {}, {} }},\n".format(skeleton_connections[i][0], skeleton_connections[i][1], skeleton_connections[i][2]))
-            f.write("};\n\n")
+                f.write("    {{ {}, {}, {} }},\\\n".format(skeleton_connections[i][0], skeleton_connections[i][1], skeleton_connections[i][2]))
+            f.write("}\\\n\n")
+            f.write("extern const int bindings[BINDINGS_NB][3];\n\n")
         else:
-            f.write("static const int **bindings = NULL;\n\n")
+            f.write("#define BINDINGS const int **bindings = NULL\n\n")
 
         f.write('/* Display */\n')
         f.write('#define WELCOME_MSG_0       "Single/multi pose estimation - Hand landmark"\n')

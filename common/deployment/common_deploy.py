@@ -340,8 +340,9 @@ def stm32ai_deploy(target: bool = False,
             if os.path.exists(stm32ai_output):
                 # Move the existing STM32Cube.AI output directory to the output directory
                 #os.rename(stm32ai_output,"generated")
-                shutil.move(stm32ai_output, os.path.join(output_dir, "generated"))
-                stm32ai_output = os.path.join(output_dir, "generated")
+                if not stm32ai_output.lower() == os.path.join(output_dir, "generated").lower():
+                    shutil.move(stm32ai_output, os.path.join(output_dir, "generated"))
+                    stm32ai_output = os.path.join(output_dir, "generated")
 
                 # Check if STM32Cube.AI was used locally to add the Lib/Inc generation
                 if not os.listdir(stm32ai_output) or ('Lib' or 'Inc') not in os.listdir(stm32ai_output):

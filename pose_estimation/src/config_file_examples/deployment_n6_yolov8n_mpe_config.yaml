@@ -6,6 +6,7 @@ operation_mode: deployment
 
 dataset:
    class_names: [person]
+   keypoints: 17
 
 preprocessing:
    resizing:
@@ -33,7 +34,7 @@ deployment:
    verbosity: 1
    hardware_setup:
       serie: STM32N6
-      board: STM32N6570-DK #STM32H747I-DISCO, STM32N6570-DK
+      board: STM32N6570-DK
 
 mlflow:
    uri: ./src/experiments_outputs/mlruns

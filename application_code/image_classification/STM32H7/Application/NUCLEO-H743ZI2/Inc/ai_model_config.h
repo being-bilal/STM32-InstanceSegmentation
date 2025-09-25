@@ -39,7 +39,7 @@
 #define ASPECT_RATIO_CROP       (2)
 #define ASPECT_RATIO_PADDING    (3)
 
-#define ASPECT_RATIO_MODE    ASPECT_RATIO_PADDING
+#define ASPECT_RATIO_MODE    ASPECT_RATIO_FIT
 
 /* Input color format configuration */
 #define RGB_FORMAT          (1)
@@ -53,21 +53,21 @@
 #define INT8_FORMAT       (2)
 #define FLOAT32_FORMAT    (3)
 
-#define QUANT_INPUT_TYPE     INT8_FORMAT
+#define QUANT_INPUT_TYPE     UINT8_FORMAT
 #define QUANT_OUTPUT_TYPE    FLOAT32_FORMAT
 
 /* Display configuration */
 #define DISPLAY_INTERFACE_USB (1)
 #define DISPLAY_INTERFACE_SPI (2)
 
-#define DISPLAY_INTERFACE DISPLAY_INTERFACE_SPI
+#define DISPLAY_INTERFACE    DISPLAY_INTERFACE_USB
 
 /* Camera configuration */
 #define CAMERA_INTERFACE_DCMI (1)
 #define CAMERA_INTERFACE_USB  (2)
 #define CAMERA_INTERFACE_SPI  (3)
 
-#define CAMERA_INTERFACE CAMERA_INTERFACE_USB
+#define CAMERA_INTERFACE    CAMERA_INTERFACE_DCMI
 
 /* Camera Sensor configuration */
 #define CAMERA_SENSOR_OV5640 (1)

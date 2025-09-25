@@ -48,7 +48,6 @@
 #define POSTPROCESS_YOLO_V2    (2)
 #define POSTPROCESS_ST_SSD     (3)
 #define POSTPROCESS_SSD        (4)
-#define POSTPROCESS_ST_YOLO_X  (5)
 
 #define POSTPROCESS_TYPE    POSTPROCESS_ST_SSD
 

@@ -35,6 +35,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/Src/CM7/ai_interface.c</locationURI>
 		</link>
 		<link>
+			<name>Application/syscalls.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Src/CM7/syscalls.c</locationURI>
+		</link>
+		<link>
 			<name>Application/app_camera.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Src/CM7/app_camera.c</locationURI>

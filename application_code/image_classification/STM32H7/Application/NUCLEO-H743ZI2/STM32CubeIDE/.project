@@ -61,6 +61,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Src/main.c</locationURI>
 		</link>
 		<link>
+			<name>Application/syscalls.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Src/syscalls.c</locationURI>
+		</link>
+		<link>
 			<name>Application/stm32h7xx_hal_msp.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Src/stm32h7xx_hal_msp.c</locationURI>
@@ -414,11 +419,6 @@
 			<name>Drivers/BSP/NUCLEO_H743ZI2/nucleo_h743zi2_camera_spi.c</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/Drivers/BSP/NUCLEO-H743ZI2/nucleo_h743zi2_camera_spi.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/NUCLEO_H743ZI2/nucleo_h743zi2_camera_usb.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/Drivers/BSP/NUCLEO-H743ZI2/nucleo_h743zi2_camera_usb.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/BSP/NUCLEO_H743ZI2/nucleo_h743zi2_display_spi.c</name>

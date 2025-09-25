@@ -69,20 +69,6 @@ Rectangle_TypeDef lcd_fg_area = {
   .YSize = LCD_FG_HEIGHT,
 };
 
-#define NUMBER_COLORS 10
-const uint32_t colors[NUMBER_COLORS] = {
-    UTIL_LCD_COLOR_GREEN,
-    UTIL_LCD_COLOR_RED,
-    UTIL_LCD_COLOR_CYAN,
-    UTIL_LCD_COLOR_MAGENTA,
-    UTIL_LCD_COLOR_YELLOW,
-    UTIL_LCD_COLOR_GRAY,
-    UTIL_LCD_COLOR_BLACK,
-    UTIL_LCD_COLOR_BROWN,
-    UTIL_LCD_COLOR_BLUE,
-    UTIL_LCD_COLOR_ORANGE
-};
-
 volatile int32_t cameraFrameReceived;
 uint8_t *nn_in;
 BSP_LCD_LayerConfig_t LayerConfig = {0};

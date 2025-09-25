@@ -12,7 +12,7 @@ import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
 import os
-import sys
+import shutil
 
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
@@ -160,64 +160,64 @@ def gen_h_user_file_h7(config: DictConfig = None, quantized_model_path: str = No
 
         if (params.general.model_type == "st_ssd_mobilenet_v1" or params.general.model_type == "ssd_mobilenet_v2_fpnlite") and not TFLite_Detection_PostProcess_id:
             f.write("/* Postprocessing ST_SSD configuration */\n")
-            f.write("#define AI_OD_SSD_ST_PP_NB_CLASSES         ({})\n".format(len(class_names)+1))
-            f.write("#define AI_OD_SSD_ST_PP_IOU_THRESHOLD      ({})\n".format(float(params.postprocessing.NMS_thresh)))
-            f.write("#define AI_OD_SSD_ST_PP_CONF_THRESHOLD     ({})\n".format(float(params.postprocessing.confidence_thresh)))
-            f.write("#define AI_OD_SSD_ST_PP_MAX_BOXES_LIMIT    ({})\n".format(int(params.postprocessing.max_detection_boxes)))
-            f.write("#define AI_OD_SSD_ST_PP_TOTAL_DETECTIONS   ({})\n".format(int(output_details['shape'][1])))
+            f.write("#define AI_OBJDETECT_SSD_ST_PP_NB_CLASSES         ({})\n".format(len(class_names)+1))
+            f.write("#define AI_OBJDETECT_SSD_ST_PP_IOU_THRESHOLD      ({})\n".format(float(params.postprocessing.NMS_thresh)))
+            f.write("#define AI_OBJDETECT_SSD_ST_PP_CONF_THRESHOLD     ({})\n".format(float(params.postprocessing.confidence_thresh)))
+            f.write("#define AI_OBJDETECT_SSD_ST_PP_MAX_BOXES_LIMIT    ({})\n".format(int(params.postprocessing.max_detection_boxes)))
+            f.write("#define AI_OBJDETECT_SSD_ST_PP_TOTAL_DETECTIONS   ({})\n".format(int(output_details['shape'][1])))
         elif  TFLite_Detection_PostProcess_id:
             f.write("\n/* Postprocessing SSD configuration */\n")
-            f.write("#define AI_OD_SSD_PP_XY_SCALE           ({})\n".format(XY))
-            f.write("#define AI_OD_SSD_PP_WH_SCALE           ({})\n".format(WH))
-            f.write("#define AI_OD_SSD_PP_NB_CLASSES         ({})\n".format(len(class_names)+1))
-            f.write("#define AI_OD_SSD_PP_IOU_THRESHOLD      ({})\n".format(float(params.postprocessing.NMS_thresh)))
-            f.write("#define AI_OD_SSD_PP_CONF_THRESHOLD     ({})\n".format(float(params.postprocessing.confidence_thresh)))
-            f.write("#define AI_OD_SSD_PP_MAX_BOXES_LIMIT    ({})\n".format(int(params.postprocessing.max_detection_boxes)))
-            f.write("#define AI_OD_SSD_PP_TOTAL_DETECTIONS   ({})\n".format(int(output_details['shape'][1])))
+            f.write("#define AI_OBJDETECT_SSD_PP_XY_SCALE           ({})\n".format(XY))
+            f.write("#define AI_OBJDETECT_SSD_PP_WH_SCALE           ({})\n".format(WH))
+            f.write("#define AI_OBJDETECT_SSD_PP_NB_CLASSES         ({})\n".format(len(class_names)+1))
+            f.write("#define AI_OBJDETECT_SSD_PP_IOU_THRESHOLD      ({})\n".format(float(params.postprocessing.NMS_thresh)))
+            f.write("#define AI_OBJDETECT_SSD_PP_CONF_THRESHOLD     ({})\n".format(float(params.postprocessing.confidence_thresh)))
+            f.write("#define AI_OBJDETECT_SSD_PP_MAX_BOXES_LIMIT    ({})\n".format(int(params.postprocessing.max_detection_boxes)))
+            f.write("#define AI_OBJDETECT_SSD_PP_TOTAL_DETECTIONS   ({})\n".format(int(output_details['shape'][1])))
         elif (params.general.model_type == "tiny_yolo_v2" or params.general.model_type == "st_yolo_lc_v1"):
             f.write("\n/* Postprocessing TINY_YOLO_V2 configuration */\n")
             yolo_anchors = np.concatenate(params.postprocessing.yolo_anchors).flatten()
-            f.write("#define AI_OD_YOLOV2_PP_NB_CLASSES      ({})\n".format(len(class_names)))
-            f.write("#define AI_OD_YOLOV2_PP_GRID_WIDTH      ({})\n".format(int(input_shape[2]//params.postprocessing.network_stride)))
-            f.write("#define AI_OD_YOLOV2_PP_GRID_HEIGHT     ({})\n".format(int(input_shape[1]//params.postprocessing.network_stride)))
-            f.write("#define AI_OD_YOLOV2_PP_NB_INPUT_BOXES  (AI_OD_YOLOV2_PP_GRID_WIDTH * AI_OD_YOLOV2_PP_GRID_HEIGHT)\n")
-            f.write("#define AI_OD_YOLOV2_PP_NB_ANCHORS      ({})\n".format(int(len(yolo_anchors)/2)))
+            f.write("#define AI_OBJDETECT_YOLOV2_PP_NB_CLASSES      ({})\n".format(len(class_names)))
+            f.write("#define AI_OBJDETECT_YOLOV2_PP_GRID_WIDTH      ({})\n".format(int(input_shape[2]//params.postprocessing.network_stride)))
+            f.write("#define AI_OBJDETECT_YOLOV2_PP_GRID_HEIGHT     ({})\n".format(int(input_shape[1]//params.postprocessing.network_stride)))
+            f.write("#define AI_OBJDETECT_YOLOV2_PP_NB_INPUT_BOXES  (AI_OBJDETECT_YOLOV2_PP_GRID_WIDTH * AI_OBJDETECT_YOLOV2_PP_GRID_HEIGHT)\n")
+            f.write("#define AI_OBJDETECT_YOLOV2_PP_NB_ANCHORS      ({})\n".format(int(len(yolo_anchors)/2)))
             anchors_string = "{" + ", ".join([f"{(x):.6f}" for x in yolo_anchors]) + "}"
-            f.write("static const float32_t AI_OD_YOLOV2_PP_ANCHORS[2*AI_OD_YOLOV2_PP_NB_ANCHORS] ={};\n".format(anchors_string))
-            f.write("#define AI_OD_YOLOV2_PP_IOU_THRESHOLD      ({})\n".format(float(params.postprocessing.NMS_thresh)))
-            f.write("#define AI_OD_YOLOV2_PP_CONF_THRESHOLD     ({})\n".format(float(params.postprocessing.confidence_thresh)))
-            f.write("#define AI_OD_YOLOV2_PP_MAX_BOXES_LIMIT    ({})\n".format(int(params.postprocessing.max_detection_boxes)))
+            f.write("static const float32_t AI_OBJDETECT_YOLOV2_PP_ANCHORS[2*AI_OBJDETECT_YOLOV2_PP_NB_ANCHORS] ={};\n".format(anchors_string))
+            f.write("#define AI_OBJDETECT_YOLOV2_PP_IOU_THRESHOLD      ({})\n".format(float(params.postprocessing.NMS_thresh)))
+            f.write("#define AI_OBJDETECT_YOLOV2_PP_CONF_THRESHOLD     ({})\n".format(float(params.postprocessing.confidence_thresh)))
+            f.write("#define AI_OBJDETECT_YOLOV2_PP_MAX_BOXES_LIMIT    ({})\n".format(int(params.postprocessing.max_detection_boxes)))
         elif (params.general.model_type == "st_yolo_x"):
             f.write("\n/* Postprocessing ST_YOLO_X configuration */\n")
             yolo_anchors = np.concatenate(params.postprocessing.yolo_anchors).flatten()
-            f.write("#define AI_OD_ST_YOLOX_PP_NB_CLASSES        ({})\n".format(len(class_names)))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_NB_CLASSES        ({})\n".format(len(class_names)))
 
-            f.write("#define AI_OD_ST_YOLOX_PP_L_GRID_WIDTH      ({})\n".format(int(input_shape[2]//params.postprocessing.network_stride[0])))
-            f.write("#define AI_OD_ST_YOLOX_PP_L_GRID_HEIGHT     ({})\n".format(int(input_shape[1]//params.postprocessing.network_stride[0])))
-            f.write("#define AI_OD_ST_YOLOX_PP_L_NB_INPUT_BOXES  (AI_OD_ST_YOLOX_PP_L_GRID_WIDTH * AI_OD_ST_YOLOX_PP_L_GRID_HEIGHT)\n")
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_L_GRID_WIDTH      ({})\n".format(int(input_shape[2]//params.postprocessing.network_stride[0])))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_L_GRID_HEIGHT     ({})\n".format(int(input_shape[1]//params.postprocessing.network_stride[0])))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_L_NB_INPUT_BOXES  (AI_OBJDETECT_YOLOVX_PP_L_GRID_WIDTH * AI_OBJDETECT_YOLOVX_PP_L_GRID_HEIGHT)\n")
 
-            f.write("#define AI_OD_ST_YOLOX_PP_M_GRID_WIDTH      ({})\n".format(int(input_shape[2]//params.postprocessing.network_stride[1])))
-            f.write("#define AI_OD_ST_YOLOX_PP_M_GRID_HEIGHT     ({})\n".format(int(input_shape[1]//params.postprocessing.network_stride[1])))
-            f.write("#define AI_OD_ST_YOLOX_PP_M_NB_INPUT_BOXES  (AI_OD_ST_YOLOX_PP_M_GRID_WIDTH * AI_OD_ST_YOLOX_PP_M_GRID_HEIGHT)\n")
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_M_GRID_WIDTH      ({})\n".format(int(input_shape[2]//params.postprocessing.network_stride[1])))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_M_GRID_HEIGHT     ({})\n".format(int(input_shape[1]//params.postprocessing.network_stride[1])))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_M_NB_INPUT_BOXES  (AI_OBJDETECT_YOLOVX_PP_M_GRID_WIDTH * AI_OBJDETECT_YOLOVX_PP_M_GRID_HEIGHT)\n")
 
-            f.write("#define AI_OD_ST_YOLOX_PP_S_GRID_WIDTH      ({})\n".format(int(input_shape[2]//params.postprocessing.network_stride[2])))
-            f.write("#define AI_OD_ST_YOLOX_PP_S_GRID_HEIGHT     ({})\n".format(int(input_shape[1]//params.postprocessing.network_stride[2])))
-            f.write("#define AI_OD_ST_YOLOX_PP_S_NB_INPUT_BOXES  (AI_OD_ST_YOLOX_PP_S_GRID_WIDTH * AI_OD_ST_YOLOX_PP_S_GRID_HEIGHT)\n")            
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_S_GRID_WIDTH      ({})\n".format(int(input_shape[2]//params.postprocessing.network_stride[2])))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_S_GRID_HEIGHT     ({})\n".format(int(input_shape[1]//params.postprocessing.network_stride[2])))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_S_NB_INPUT_BOXES  (AI_OBJDETECT_YOLOVX_PP_S_GRID_WIDTH * AI_OBJDETECT_YOLOVX_PP_S_GRID_HEIGHT)\n")            
 
-            f.write("#define AI_OD_ST_YOLOX_PP_NB_ANCHORS        ({})\n".format(int(len(yolo_anchors)/2)))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_NB_ANCHORS        ({})\n".format(int(len(yolo_anchors)/2)))
 
             anchors_string = "{" + ", ".join([f"{(x*int(input_shape[2]//params.postprocessing.network_stride[0])):.6f}" for row in params.postprocessing.yolo_anchors for x in row]) + "}"
-            f.write("static const float32_t AI_OD_ST_YOLOX_PP_L_ANCHORS[2*AI_OD_ST_YOLOX_PP_NB_ANCHORS] ={};\n".format(anchors_string))
+            f.write("static const float32_t AI_OBJDETECT_YOLOVX_PP_L_ANCHORS[2*AI_OBJDETECT_YOLOVX_PP_NB_ANCHORS] ={};\n".format(anchors_string))
 
             anchors_string = "{" + ", ".join([f"{(x*int(input_shape[2]//params.postprocessing.network_stride[1])):.6f}" for row in params.postprocessing.yolo_anchors for x in row]) + "}"
-            f.write("static const float32_t AI_OD_ST_YOLOX_PP_M_ANCHORS[2*AI_OD_ST_YOLOX_PP_NB_ANCHORS] ={};\n".format(anchors_string))
+            f.write("static const float32_t AI_OBJDETECT_YOLOVX_PP_M_ANCHORS[2*AI_OBJDETECT_YOLOVX_PP_NB_ANCHORS] ={};\n".format(anchors_string))
 
             anchors_string = "{" + ", ".join([f"{(x*int(input_shape[2]//params.postprocessing.network_stride[2])):.6f}" for row in params.postprocessing.yolo_anchors for x in row]) + "}"
-            f.write("static const float32_t AI_OD_ST_YOLOX_PP_S_ANCHORS[2*AI_OD_ST_YOLOX_PP_NB_ANCHORS] ={};\n".format(anchors_string))
+            f.write("static const float32_t AI_OBJDETECT_YOLOVX_PP_S_ANCHORS[2*AI_OBJDETECT_YOLOVX_PP_NB_ANCHORS] ={};\n".format(anchors_string))
 
-            f.write("#define AI_OD_ST_YOLOX_PP_IOU_THRESHOLD      ({})\n".format(float(params.postprocessing.NMS_thresh)))
-            f.write("#define AI_OD_ST_YOLOX_PP_CONF_THRESHOLD     ({})\n".format(float(params.postprocessing.confidence_thresh)))
-            f.write("#define AI_OD_ST_YOLOX_PP_MAX_BOXES_LIMIT    ({})\n".format(int(params.postprocessing.max_detection_boxes)))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_IOU_THRESHOLD      ({})\n".format(float(params.postprocessing.NMS_thresh)))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_CONF_THRESHOLD     ({})\n".format(float(params.postprocessing.confidence_thresh)))
+            f.write("#define AI_OBJDETECT_YOLOVX_PP_MAX_BOXES_LIMIT    ({})\n".format(int(params.postprocessing.max_detection_boxes)))
 
         f.write("\n")
 
@@ -357,8 +357,8 @@ def gen_h_user_file_n6(config: DictConfig = None, quantized_model_path: str = No
             os.remove(anchors_0_path_C)
         if os.path.exists(anchors_1_path_C):
             os.remove(anchors_1_path_C)
-        os.system(f'cp {os.path.join(path, "fd_blazeface_anchors_0.h")} {anchors_0_path_C}')
-        os.system(f'cp {os.path.join(path, "fd_blazeface_anchors_1.h")} {anchors_1_path_C}')
+        shutil.copy(os.path.join(path, "fd_blazeface_anchors_0.h"), anchors_0_path_C)
+        shutil.copy(os.path.join(path, "fd_blazeface_anchors_1.h"), anchors_1_path_C)
 
     with open(os.path.join(path, "app_config.h"), "wt") as f:
         f.write("/**\n")

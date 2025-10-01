@@ -1,0 +1,5 @@
+base_model/Dataset
+base_model/data 
+base_model/results
+*.png
+*.jpg

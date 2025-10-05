@@ -2,7 +2,7 @@ from ultralytics import YOLO
 import os
 
 model = YOLO("base_model/models/yolov8n-seg.pt")  # pretrained on COCO
-dataset_yaml = "/Users/mohammadbilal/Documents/Projects/STM32-InstanceSegmentation/base_model/yolo_dataset/data.yaml"
+dataset_yaml = "base_model/yolo_dataset/data.yaml"
 
 train_params = {
     "data": dataset_yaml,

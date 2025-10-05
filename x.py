@@ -1,18 +1,36 @@
-import os
+import shutil
+from pathlib import Path
+import random
 
-# Path to your main folder
-main_folder = "//Users/mohammadbilal/Documents/Projects/STM32-InstanceSegmentation/base_model/Dataset"
+# Paths
+results_dir = Path("/Users/mohammadbilal/Documents/Projects/STM32-InstanceSegmentation/base_model/results")
+dataset_dir = Path("/Users/mohammadbilal/Documents/Projects/STM32-InstanceSegmentation/base_model/yolo_dataset")
 
-# List all items in the folder and filter directories
-subfolders = [f for f in os.listdir(main_folder) if os.path.isdir(os.path.join(main_folder, f))]
+# Train/Val split ratio
+split_ratio = 0.8  
 
-# Count
-num_subfolders = len(subfolders)
+# Create folders
+for split in ["train", "val"]:
+    (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
+    (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
 
-print(f"Number of subfolders: {num_subfolders}")
+# Collect all images
+images = sorted((results_dir / "images").glob("*.png"))
 
-organism_dict = {}
-for i in range(num_subfolders):
-    organism_dict[i] = subfolders[i]
+random.shuffle(images)
+split_index = int(len(images) * split_ratio)
 
-print(organism_dict)
+train_images = images[:split_index]
+val_images = images[split_index:]
+
+def move_files(image_list, split):
+    for img in image_list:
+        label = results_dir / "labels" / (img.stem + ".txt")
+        if label.exists():
+            shutil.copy(img, dataset_dir / "images" / split / img.name)
+            shutil.copy(label, dataset_dir / "labels" / split / (img.stem + ".txt"))
+
+move_files(train_images, "train")
+move_files(val_images, "val")
+
+print("Dataset structured for YOLO instance segmentation!")

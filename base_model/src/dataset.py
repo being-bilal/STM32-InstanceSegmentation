@@ -14,17 +14,21 @@ images_out_dir.mkdir(parents=True, exist_ok=True)
 labels_out_dir.mkdir(parents=True, exist_ok=True)
 overlay_out_dir.mkdir(parents=True, exist_ok=True)
 
-# --------------------------- Helper Functions ---------------------------
+
+# Preprocessing the images
+# https://github.com/SundeepChand/Underwater-Image-Enhancement/blob/main/ocean_enhance.py
 def resize(img, perc=0.5):
     width = int(img.shape[1] * perc)
     height = int(img.shape[0] * perc)
     return cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA)
+
 
 def dark_channel(img, sz=15):
     b, g, r = cv2.split(img)
     dc = r - cv2.max(b, g)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (sz, sz))
     return cv2.erode(dc, kernel)
+
 
 def airlight(img, dc):
     h, w = img.shape[:2]
@@ -33,8 +37,10 @@ def airlight(img, dc):
     indices = dcvec.argsort()
     return imgvec[indices[0]]
 
+
 def transmission_estimate(dc):
     return dc + (1 - np.max(dc))
+
 
 def guided_filter(img, p, r, eps):
     mean_I = cv2.boxFilter(img, cv2.CV_64F, (r, r))
@@ -53,6 +59,7 @@ def guided_filter(img, p, r, eps):
 
     return mean_a * img + mean_b
 
+
 def transmission_refine(img, et):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray = np.float64(gray) / 255
@@ -60,23 +67,30 @@ def transmission_refine(img, et):
     eps = 0.0001
     return guided_filter(gray, et, r, eps)
 
+
 def recover(img, t, A):
     res = np.empty(img.shape, img.dtype)
     for i in range(3):
         res[:, :, i] = (img[:, :, i] - A[i]) / t + A[i]
     return res
 
+
 def normalize_image(img):
     img = img - img.min()
     img = img / img.max() * 255
     return np.uint8(img)
+
 
 def edge_enhancement(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
     img = clahe.apply(gray)
 
-    kernel = np.array([[0,-1,0], [-1,5,-1], [0,-1,0]])
+    kernel = np.array(
+        [[0, -1, 0],
+         [-1, 5, -1],
+         [0, -1, 0]]
+        )
     img = cv2.filter2D(img, -1, kernel)
     img = cv2.fastNlMeansDenoising(img, None, h=10, templateWindowSize=7, searchWindowSize=21)
     edges = cv2.Canny(img, 50, 150)
@@ -97,11 +111,12 @@ def edge_enhancement(img):
     
     return mask
 
-# --------------------------- Process Dataset ---------------------------
+
+
 scale = 1
 min_area = 1000
 img_counter = 1
-class_mapping = {}  # Dictionary to store subfolder name -> class ID
+class_mapping = {} 
 class_id = 0
 
 for subfolder in sorted(dataset_dir.iterdir()):
@@ -166,7 +181,7 @@ for subfolder in sorted(dataset_dir.iterdir()):
 
         img_counter += 1
 
-    class_id += 1  # Increment class ID for next subfolder
+    class_id += 1  
 
 # Save class mapping dictionary to text file
 mapping_file = results_dir / "class_mapping.txt"
